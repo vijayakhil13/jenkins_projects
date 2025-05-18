@@ -26,8 +26,9 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
+                dir('sample-app') {
                 sh 'npm test'
-            }
+            }}
             post {
                 always {
                     junit allowEmptyResults: true, testResults: '**/test-results/results.xml'
