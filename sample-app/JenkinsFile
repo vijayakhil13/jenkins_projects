@@ -17,9 +17,10 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Installing dependencies and building the app...'
+                dir('sample-app') {
                 sh 'npm install'
                 sh 'npm run build'
-            }
+            }}
         }
 
         stage('Test') {
