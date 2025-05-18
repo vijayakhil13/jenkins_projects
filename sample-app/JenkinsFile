@@ -1,16 +1,11 @@
 pipeline {
     agent any
 
-    environment {
-        APP_NAME = 'sample-app'
-        TEST_ENV = 'test-environment'
-    }
-
     stages {
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
-                git url: 'https://github.com/vijayakhil13/jenkins_projects/sample-app.git', branch: 'main'
+                git url: 'https://github.com/vijayakhil13/jenkins_projects.git', branch: 'main'
             }
         }
 
@@ -18,20 +13,23 @@ pipeline {
             steps {
                 echo 'Installing dependencies and building the app...'
                 dir('sample-app') {
-                sh 'npm install'
-                sh 'npm run build'
-            }}
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
         }
 
         stage('Test') {
             steps {
                 echo 'Running tests...'
                 dir('sample-app') {
-                sh 'npm test'
-            }}
+                    sh 'mkdir -p test-results'
+                    sh 'npm test'
+                }
+            }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: '**/test-results/results.xml'
+                    junit allowEmptyResults: true, testResults: 'sample-app/test-results/junit.xml'
                 }
             }
         }
@@ -39,15 +37,19 @@ pipeline {
         stage('Package') {
             steps {
                 echo "Packaging the app..."
-                sh 'tar -czf ${APP_NAME}.tar.gz ./'
-                archiveArtifacts artifacts: "${APP_NAME}.tar.gz", fingerprint: true
+                dir('sample-app') {
+                    sh 'mkdir -p package'
+                    sh 'cp -r ./ package/'
+                    sh 'tar -czf sample-app.tar.gz -C package ./'
+                    archiveArtifacts artifacts: "sample-app.tar.gz", fingerprint: true
+                }
             }
         }
 
         stage('Deploy to Test') {
             steps {
-                echo "Simulating deploy to ${TEST_ENV}..."
-                sh "echo Deploying ${APP_NAME} to ${TEST_ENV} (simulated deploy)"
+                echo "Simulating deploy to test environment..."
+                sh "echo Deploying sample-app to test environment (simulated deploy)"
             }
         }
     }
@@ -55,11 +57,9 @@ pipeline {
     post {
         success {
             echo 'Pipeline completed successfully!'
-            // Add notification commands here like email, Slack, etc.
         }
         failure {
             echo 'Pipeline failed!'
-            // Add failure notification commands here
         }
     }
 }
